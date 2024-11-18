@@ -50,13 +50,30 @@ class MyApp(BaseMenu):
 
 
 def connect_to_database():
-    'Connect to the SQL Server database'
+    """Connect to the SQL Server database and run a test query."""
     try:
-        connection = pypyodbc.connect('Driver={SQL Server};Server=your_server_name;Database=your_database_name;uid=your_user_id;pwd=your_password')
+        connection = pypyodbc.connect('Driver={SQL Server};Server=cypress.csil.sfu.ca;Database=;uid=s_kzcheng;pwd=')
         print("Connection Successfully Established")
+
+        # Create a cursor object using the connection
+        cursor = connection.cursor()
+
+        # Run a simple query to test the connection
+        cursor.execute("SELECT TOP 1 * FROM INFORMATION_SCHEMA.TABLES")
+
+        # Fetch and print the result of the query
+        row = cursor.fetchone()
+        if row:
+            print("Test query executed successfully. Sample row:", row)
+        else:
+            print("Test query executed successfully, but no data was returned.")
+
+        # Close the cursor and connection
+        cursor.close()
         connection.close()
     except pypyodbc.Error as ex:
         print("Error in connection:", ex)
+
 
 
 def run_tests():
