@@ -49,5 +49,24 @@ class MyApp(BaseMenu):
         print("Back command is not available in the main menu")
 
 
+def connect_to_database():
+    'Connect to the SQL Server database'
+    try:
+        connection = pypyodbc.connect('Driver={SQL Server};Server=your_server_name;Database=your_database_name;uid=your_user_id;pwd=your_password')
+        print("Connection Successfully Established")
+        connection.close()
+    except pypyodbc.Error as ex:
+        print("Error in connection:", ex)
+
+
+def run_tests():
+    'Run test code'
+    connect_to_database()
+
+
 if __name__ == '__main__':
-    MyApp().cmdloop()
+    # Comment out the main command loop
+    # MyApp().cmdloop()
+
+    # Run test code
+    run_tests()
