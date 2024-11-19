@@ -1,7 +1,11 @@
 # importing module
 import pypyodbc
 import cmd
+from dotenv import load_dotenv
+import os
 
+# Load environment variables from .env file
+load_dotenv()
 
 class BaseMenu(cmd.Cmd):
     def do_exit(self, arg):
@@ -50,16 +54,20 @@ class MyApp(BaseMenu):
 
 
 def connect_to_database():
-    """Connect to the SQL Server database and run a test query."""
+    'Connect to the SQL Server database and run a test query.'
     try:
-        connection = pypyodbc.connect('Driver={SQL Server};Server=cypress.csil.sfu.ca;Database=;uid=s_kzcheng;pwd=')
+        connection = pypyodbc.connect(
+            f'Driver={{SQL Server}};Server={os.getenv("SQL_SERVER")};'
+            f'Database={os.getenv("DATABASE")};uid={os.getenv("USER_ID")};'
+            f'pwd={os.getenv("PASSWORD")}'
+        )
         print("Connection Successfully Established")
 
         # Create a cursor object using the connection
         cursor = connection.cursor()
 
         # Run a simple query to test the connection
-        cursor.execute("SELECT TOP 1 * FROM INFORMATION_SCHEMA.TABLES")
+        cursor.execute("SELECT TOP 1 * FROM dbo.business")
 
         # Fetch and print the result of the query
         row = cursor.fetchone()
@@ -73,7 +81,6 @@ def connect_to_database():
         connection.close()
     except pypyodbc.Error as ex:
         print("Error in connection:", ex)
-
 
 
 def run_tests():
