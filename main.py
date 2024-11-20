@@ -7,6 +7,8 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
+
+# Various types of menus
 class BaseMenu(cmd.Cmd):
     def do_exit(self, arg):
         'Exit the application'
@@ -53,44 +55,61 @@ class MyApp(BaseMenu):
         print("Back command is not available in the main menu")
 
 
-def connect_to_database():
-    'Connect to the SQL Server database and run a test query.'
-    try:
-        connection = pypyodbc.connect(
-            f'Driver={{SQL Server}};Server={os.getenv("SQL_SERVER")};'
-            f'Database={os.getenv("DATABASE")};uid={os.getenv("USER_ID")};'
-            f'pwd={os.getenv("PASSWORD")}'
-        )
-        print("Connection Successfully Established")
+# Class for connecting to the database
+class DatabaseConnection:
+    def __init__(self):
+        self.connection = None
 
-        # Create a cursor object using the connection
-        cursor = connection.cursor()
+    def connect(self):
+        if self.connection is None:
+            self.connection = pypyodbc.connect(
+                f'Driver={{SQL Server}};Server={os.getenv("SQL_SERVER")};'
+                f'Database={os.getenv("DATABASE")};uid={os.getenv("USER_ID")};'
+                f'pwd={os.getenv("PASSWORD")}'
+            )
+            print("Connection Successfully Established")
 
-        # Run a simple query to test the connection
-        cursor.execute("SELECT TOP 1 * FROM dbo.business")
+    def execute_query(self, query):
+        try:
+            self.connect()
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            result = cursor.fetchall()
+            cursor.close()
+            return result
+        except pypyodbc.Error as ex:
+            print("Error in query execution:", ex)
+            return None
 
-        # Fetch and print the result of the query
-        row = cursor.fetchone()
-        if row:
-            print("Test query executed successfully. Sample row:", row)
-        else:
-            print("Test query executed successfully, but no data was returned.")
-
-        # Close the cursor and connection
-        cursor.close()
-        connection.close()
-    except pypyodbc.Error as ex:
-        print("Error in connection:", ex)
+    def close(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            print("Connection Closed")
 
 
+# Tests
 def run_tests():
     'Run test code'
-    connect_to_database()
+    connect_to_database_test()
+
+
+def connect_to_database_test():
+    'Connect to the SQL Server database and run a test query.'
+    try:
+        db = DatabaseConnection()
+        result = db.execute_query("SELECT TOP 1 * FROM dbo.business")
+        if result:
+            print("Test query executed successfully. Sample row:", result[0])
+        else:
+            print("Test query executed successfully, but no data was returned.")
+    except pypyodbc.Error as ex:
+        print("Error in connection:", ex)
+    finally:
+        db.close()
 
 
 if __name__ == '__main__':
-    # Comment out the main command loop
+    # Comment out the main loop or test code
     # MyApp().cmdloop()
-
-    # Run test code
     run_tests()
