@@ -38,21 +38,28 @@ Review Business
 
 # importing module
 import pypyodbc
-import cmd
+import cmd2
 from dotenv import load_dotenv
 import os
 import sys
+from pprint import pprint
+
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Global variables
+user_id = None
+db = None
+
 
 # Various types of menus
-class BaseMenu(cmd.Cmd):
+class BaseMenu(cmd2.Cmd):
     def do_exit(self, arg):
         'Exit the application'
         print("Goodbye!")
         sys.exit(0)
+        return True
 
     def do_back(self, arg):
         'Go back to the previous menu'
@@ -66,10 +73,12 @@ class SubMenu1(BaseMenu):
     def do_option1(self, arg):
         'Option 1 in Menu 1'
         print("You selected Option 1 in Menu 1")
+        return
 
     def do_option2(self, arg):
         'Option 2 in Menu 1'
         print("You selected Option 2 in Menu 1")
+        return
 
 
 class Yelp(BaseMenu):
@@ -78,28 +87,43 @@ class Yelp(BaseMenu):
 
     def __init__(self):
         super().__init__()
-        self.user_id = None
-        self.db = DatabaseConnection()
-        self.db.connect()
+        global db
+        db = DatabaseConnection()
+        db.connect()
 
     def do_login(self, arg):
         'Login with a user ID'
-        self.user_id = input("Enter your user ID: ")
-        print(f"Logged in as user: {self.user_id}")
+        # Use __hr-GtD9qh8_sYSGTRqXw for testing
+        global user_id
+
+        input_id = input("Enter your user ID: ")
+        result = db.execute_query(f"SELECT COUNT(*) FROM dbo.user_yelp WHERE user_id = '{input_id}'")
+        # pprint(result[0][0])
+        if result[0][0] == 0:
+            print("User ID not found.")
+            user_id = None
+            return
+        else:
+            user_id = input_id
+            print(f"Logged in as user: {user_id}")
+            return
 
     def do_menu1(self, arg):
         'Enter menu 1'
         print("You are in Menu 1")
         SubMenu1().cmdloop()
+        return
 
     def do_menu2(self, arg):
         'Enter menu 2'
         print("You are in Menu 2")
         # Add more commands or submenus here
+        return
 
     def do_back(self, arg):
         'Back command is disabled in the main menu'
         print("Back command is not available in the main menu")
+        return
 
 
 # Class for connecting to the database
@@ -151,7 +175,7 @@ def connect_to_database_test():
     try:
         db = DatabaseConnection()
         db.connect()
-        result = db.execute_query("SELECT TOP 1 * FROM dbo.business")
+        result = db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp")
         if result:
             print("Test query executed successfully. Sample row:", result[0])
         else:
@@ -162,7 +186,17 @@ def connect_to_database_test():
         db.close()
 
 
+# Called when the script is run
+def main():
+    try:
+        Yelp().cmdloop()
+    except pypyodbc.Error as ex:
+        print("Error in connection:", ex)
+    finally:
+        db.close()
+
+
 if __name__ == '__main__':
     # Comment out the main loop or test code
-    Yelp().cmdloop()
+    main()
     # run_tests()
