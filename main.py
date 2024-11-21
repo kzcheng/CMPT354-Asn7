@@ -5,10 +5,10 @@ Your application should either have a graphical user interface or a command line
 The functions to be implemented are as follows:
 
 Login
-1. This function allows the user to log in the interface to have access to all other functionalities. The user must be remembered by the system for further operations in the
+1. (Done) This function allows the user to log in the interface to have access to all other functionalities. The user must be remembered by the system for further operations in the
 same session.
-2. The user must enter a valid user ID.
-3. If the user ID is invalid, an appropriate message should be shown to the user.
+2. (Done) The user must enter a valid user ID.
+3. (Done) If the user ID is invalid, an appropriate message should be shown to the user.
 
 Search Business
 1. This function allows the user to search for businesses that satisfy certain criteria.
@@ -51,6 +51,16 @@ load_dotenv()
 # Global variables
 user_id = None
 db = None
+
+
+# Decorator to check if user is logged in
+def is_logged_in(func):
+    def wrapper(self, *args, **kwargs):
+        if user_id is None:
+            print("You must be logged in to use this function.")
+            return
+        return func(self, *args, **kwargs)
+    return wrapper
 
 
 # Various types of menus
@@ -108,12 +118,14 @@ class Yelp(BaseMenu):
             print(f"Logged in as user: {user_id}")
             return
 
+    @is_logged_in
     def do_menu1(self, arg):
         'Enter menu 1'
         print("You are in Menu 1")
         SubMenu1().cmdloop()
         return
 
+    @is_logged_in
     def do_menu2(self, arg):
         'Enter menu 2'
         print("You are in Menu 2")
