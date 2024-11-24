@@ -37,13 +37,14 @@ Review Business
 
 
 # importing module
-import pypyodbc
 import cmd2
 from dotenv import load_dotenv
 import os
 import sys
 from pprint import pprint
 from functools import wraps
+import pymssql
+from decimal import Decimal
 
 
 # Load environment variables from .env file
@@ -78,6 +79,7 @@ class BaseMenu(cmd2.Cmd):
         self.hidden_commands.append('shell')
         self.hidden_commands.append('shortcuts')
         self.hidden_commands.append('quit')
+        self.hidden_commands.append('test')
 
     def do_exit(self, arg):
         'Exit the application'
@@ -121,9 +123,9 @@ class Yelp(BaseMenu):
         global user_id
 
         input_id = input("Enter your user ID: ")
-        result = db.execute_query(f"SELECT COUNT(*) FROM dbo.user_yelp WHERE user_id = '{input_id}'")
-        # pprint(result[0][0])
-        if result[0][0] == 0:
+        result = db.execute_query(f"SELECT COUNT(*) AS count FROM dbo.user_yelp WHERE user_id = '{input_id}'")
+        pprint(result)
+        if result[0]['count'] == 0:
             print("User ID not found.")
             user_id = None
             return
@@ -145,15 +147,15 @@ class Yelp(BaseMenu):
         print("Entering menu 2")
         # Add more commands or submenus here
         return
-    
-    def do_test(self, arg):
-        'Test command'
-        print("Test command")
-        return
 
     def do_back(self, arg):
         'Back command is disabled in the main menu'
         print("Back command is not available in the main menu")
+        return
+
+    def do_test(self, arg):
+        'Test command'
+        print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
         return
 
 
@@ -165,13 +167,14 @@ class DatabaseConnection:
     def connect(self):
         if self.connection is None:
             try:
-                self.connection = pypyodbc.connect(
-                    f'Driver={{SQL Server}};Server={os.getenv("SQL_SERVER")};'
-                    f'Database={os.getenv("DATABASE")};uid={os.getenv("USER_ID")};'
-                    f'pwd={os.getenv("PASSWORD")}'
+                self.connection = pymssql.connect(
+                    server=os.getenv("SQL_SERVER"),
+                    user=os.getenv("USER_ID"),
+                    password=os.getenv("PASSWORD"),
+                    database=os.getenv("DATABASE")
                 )
                 print("Connection Successfully Established")
-            except pypyodbc.Error as ex:
+            except pymssql.Error as ex:
                 print(f"Error connecting to database: {ex}")
 
     def execute_query(self, query):
@@ -179,12 +182,12 @@ class DatabaseConnection:
             print("No database connection.")
             return None
         try:
-            cursor = self.connection.cursor()
+            cursor = self.connection.cursor(as_dict=True)
             cursor.execute(query)
             result = cursor.fetchall()
             cursor.close()
             return result
-        except pypyodbc.Error as ex:
+        except pymssql.Error as ex:
             print("Error in query execution:", ex)
             return None
 
@@ -201,7 +204,7 @@ def run_tests():
     # connect_to_database_test()
     try:
         Yelp().do_test("")
-    except pypyodbc.Error as ex:
+    except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
         db.close()
@@ -217,7 +220,7 @@ def connect_to_database_test():
             print("Test query executed successfully. Sample row:", result[0])
         else:
             print("Test query executed successfully, but no data was returned.")
-    except pypyodbc.Error as ex:
+    except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
         db.close()
@@ -227,7 +230,7 @@ def connect_to_database_test():
 def main():
     try:
         Yelp().cmdloop()
-    except pypyodbc.Error as ex:
+    except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
         db.close()
@@ -235,5 +238,5 @@ def main():
 
 if __name__ == '__main__':
     # Comment out the main loop or test code
-    # main()
-    run_tests()
+    main()
+    # run_tests()
