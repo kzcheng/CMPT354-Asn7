@@ -43,6 +43,7 @@ from dotenv import load_dotenv
 import os
 import sys
 from pprint import pprint
+from functools import wraps
 
 
 # Load environment variables from .env file
@@ -55,9 +56,10 @@ db = None
 
 # Decorator to check if user is logged in
 def is_logged_in(func):
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         if user_id is None:
-            print("You must be logged in to use this function.")
+            print("You must be logged in to use this command.")
             return
         return func(self, *args, **kwargs)
     return wrapper
@@ -65,6 +67,18 @@ def is_logged_in(func):
 
 # Various types of menus
 class BaseMenu(cmd2.Cmd):
+    def __init__(self):
+        super().__init__()
+        self.hidden_commands.append('alias')
+        self.hidden_commands.append('edit')
+        self.hidden_commands.append('macro')
+        self.hidden_commands.append('run_pyscript')
+        self.hidden_commands.append('run_script')
+        self.hidden_commands.append('set')
+        self.hidden_commands.append('shell')
+        self.hidden_commands.append('shortcuts')
+        self.hidden_commands.append('quit')
+
     def do_exit(self, arg):
         'Exit the application'
         print("Goodbye!")
@@ -121,14 +135,14 @@ class Yelp(BaseMenu):
     @is_logged_in
     def do_menu1(self, arg):
         'Enter menu 1'
-        print("You are in Menu 1")
+        print("Entering menu 1")
         SubMenu1().cmdloop()
         return
 
     @is_logged_in
     def do_menu2(self, arg):
         'Enter menu 2'
-        print("You are in Menu 2")
+        print("Entering menu 2")
         # Add more commands or submenus here
         return
 
