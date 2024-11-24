@@ -145,6 +145,11 @@ class Yelp(BaseMenu):
         print("Entering menu 2")
         # Add more commands or submenus here
         return
+    
+    def do_test(self, arg):
+        'Test command'
+        print("Test command")
+        return
 
     def do_back(self, arg):
         'Back command is disabled in the main menu'
@@ -193,7 +198,13 @@ class DatabaseConnection:
 # Tests
 def run_tests():
     'Run test code'
-    connect_to_database_test()
+    # connect_to_database_test()
+    try:
+        Yelp().do_test("")
+    except pypyodbc.Error as ex:
+        print("Error in connection:", ex)
+    finally:
+        db.close()
 
 
 def connect_to_database_test():
@@ -224,5 +235,5 @@ def main():
 
 if __name__ == '__main__':
     # Comment out the main loop or test code
-    main()
-    # run_tests()
+    # main()
+    run_tests()
