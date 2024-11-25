@@ -134,10 +134,12 @@ class Yelp(BaseMenu):
             print(f"Logged in as user: {user_id}")
             return
 
-    # @is_logged_in
+    @is_logged_in
     def do_search_business(self, arg):
         'Search for businesses based on criteria'
-        min_stars = input("Enter minimum number of stars: ")
+        min_stars = input("Enter minimum number of stars (default 0): ").strip()
+        if not min_stars:
+            min_stars = 0
         city = input("Enter city (leave blank for any): ").strip()
         name = input("Enter business name or part of the name (leave blank for any): ").strip()
         order_by = input("Order by (name/city/stars): ").strip().lower()
@@ -165,12 +167,16 @@ class Yelp(BaseMenu):
         else:
             pprint(results)
 
-    # @is_logged_in
+    @is_logged_in
     def do_search_users(self, arg):
         'Search for users based on criteria'
         name = input("Enter user name or part of the name (leave blank for any): ").strip()
-        min_review_count = input("Enter minimum review count: ")
-        min_avg_stars = input("Enter minimum average stars: ")
+        min_review_count = input("Enter minimum review count (default 0): ").strip()
+        if not min_review_count:
+            min_review_count = 0
+        min_avg_stars = input("Enter minimum average stars (default 0): ").strip()
+        if not min_avg_stars:
+            min_avg_stars = 0
 
         query = f"SELECT * FROM dbo.user_yelp WHERE review_count >= {min_review_count} AND average_stars >= {min_avg_stars}"
 
@@ -208,7 +214,7 @@ class Yelp(BaseMenu):
         'Test command'
         # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
         # self.do_search_business("")
-        self.do_search_users("")
+        # self.do_search_users("")
         return
 
 
@@ -255,8 +261,11 @@ class DatabaseConnection:
 def run_tests():
     'Run test code'
     # connect_to_database_test()
+
     try:
-        Yelp().do_test("")
+        global user_id 
+        user_id = "test"
+        Yelp().do_search_users("")
     except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
