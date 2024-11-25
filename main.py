@@ -124,7 +124,7 @@ class Yelp(BaseMenu):
 
         input_id = input("Enter your user ID: ")
         result = db.execute_query(f"SELECT COUNT(*) AS count FROM dbo.user_yelp WHERE user_id = '{input_id}'")
-        pprint(result)
+        # pprint(result)
         if result[0]['count'] == 0:
             print("User ID not found.")
             user_id = None
@@ -133,6 +133,37 @@ class Yelp(BaseMenu):
             user_id = input_id
             print(f"Logged in as user: {user_id}")
             return
+
+    # @is_logged_in
+    def do_search_business(self, arg):
+        'Search for businesses based on criteria'
+        min_stars = input("Enter minimum number of stars: ")
+        city = input("Enter city (leave blank for any): ").strip()
+        name = input("Enter business name or part of the name (leave blank for any): ").strip()
+        order_by = input("Order by (name/city/stars): ").strip().lower()
+
+        query = f"SELECT * FROM dbo.business WHERE stars >= {min_stars}"
+
+        if city:
+            query += f" AND LOWER(city) = LOWER('{city}')"
+        if name:
+            query += f" AND LOWER(name) LIKE LOWER('%{name}%')"
+
+        if order_by == "name":
+            query += " ORDER BY name"
+        elif order_by == "city":
+            query += " ORDER BY city"
+        elif order_by == "stars":
+            query += " ORDER BY stars"
+        else:
+            print("Invalid order by option. Defaulting to order by name.")
+            query += " ORDER BY name"
+
+        results = db.execute_query(query)
+        if not results:
+            print("No businesses found matching the criteria.")
+        else:
+            pprint(results)
 
     @is_logged_in
     def do_menu1(self, arg):
@@ -155,7 +186,8 @@ class Yelp(BaseMenu):
 
     def do_test(self, arg):
         'Test command'
-        print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
+        # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
+        self.do_search_business("")
         return
 
 
@@ -238,5 +270,5 @@ def main():
 
 if __name__ == '__main__':
     # Comment out the main loop or test code
-    main()
-    # run_tests()
+    # main()
+    run_tests()
