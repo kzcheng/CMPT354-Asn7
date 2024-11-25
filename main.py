@@ -31,7 +31,7 @@ Review Business
 1. (Done) A user should be able to review a business.
 2. (Done) To make a review, a user must enter the business's ID in a terminal or click on a business returned by Search Business in a GUI.
 3. (Done) The user must provide the number of stars (integer between 1 and 5).
-4. The review should be recorded in the Review table. Create a review ID consisting of the ID of the logged user and the current date.
+4. (Done) The review should be recorded in the Review table. Create a review ID consisting of the ID of the logged user and the current date.
 5. The program should update the number of stars and the count of reviews for the reviewed business. You need to make sure that the triggers you implemented in assignment 4 are working properly with your application program.
 """
 
@@ -44,7 +44,8 @@ import sys
 from pprint import pprint
 from functools import wraps
 import pymssql
-from decimal import Decimal
+import uuid
+import base64
 
 
 # Load environment variables from .env file
@@ -239,8 +240,11 @@ class Yelp(BaseMenu):
             print("Stars must be an integer between 1 and 5.")
             return
 
+        # Generate a random CHAR(22) for review_id
+        review_id = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8').rstrip('=\n')[:22]
+
+
         # Insert the review record
-        review_id = user_id  # Using user_id as the review_id for now
         success = db.execute_non_query(f"INSERT INTO dbo.review (review_id, user_id, business_id, stars) VALUES ('{review_id}', '{user_id}', '{business_id}', {stars})")
         if success:
             print(f"Review for business {business_id} has been added.")
@@ -370,5 +374,5 @@ def main():
 
 if __name__ == '__main__':
     # Comment out the main loop or test code
-    # main()
-    run_tests()
+    main()
+    # run_tests()
