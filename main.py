@@ -24,8 +24,8 @@ Search Users
 4. (Done) If the search result is empty, an appropriate message should be shown to the user.
 
 Make Friend
-1. A user must be able to select another user from the results of the function Search Users and create a friendship. This can be done by entering the user's ID in a terminal or by clicking on a user in a GUI. The selected user will be a friend of the user that is logged in to the database.
-2. The friendship should be recorded in the Friendship table.
+1. (Done) A user must be able to select another user from the results of the function Search Users and create a friendship. This can be done by entering the user's ID in a terminal or by clicking on a user in a GUI. The selected user will be a friend of the user that is logged in to the database.
+2. (Done) The friendship should be recorded in the Friendship table.
 
 Review Business
 1. A user should be able to review a business.
@@ -119,7 +119,7 @@ class Yelp(BaseMenu):
 
     def do_login(self, arg):
         'Login with a user ID'
-        # Use __hr-GtD9qh8_sYSGTRqXw for testing
+        # A user ID for testing: GyeRXCZnZOVOukMmzlLC1A
         global user_id
 
         input_id = input("Enter your user ID: ")
@@ -192,6 +192,33 @@ class Yelp(BaseMenu):
             pprint(results)
 
     @is_logged_in
+    def do_make_friend(self, arg):
+        'Make a friend with another user'
+        # Another random user ID for testing: rd9nxNBDINxLke0zAvibLQ
+        friend_id = input("Enter the user ID of the person you want to befriend: ").strip()
+
+        if not friend_id:
+            print("User ID cannot be empty.")
+            return
+
+        if friend_id == user_id:
+            print("You cannot befriend yourself.")
+            return
+
+        # Check if the friend exists
+        result = db.execute_query(f"SELECT COUNT(*) AS count FROM dbo.user_yelp WHERE user_id = '{friend_id}'")
+        if result[0]['count'] == 0:
+            print("User ID not found.")
+            return
+
+        # Insert the friendship record
+        success = db.execute_non_query(f"INSERT INTO dbo.friendship (user_id, friend) VALUES ('{user_id}', '{friend_id}')")
+        if success:
+            print(f"User {friend_id} has been added as a friend.")
+        else:
+            print("Failed to add friend. Please try again.")
+
+    @is_logged_in
     def do_menu1(self, arg):
         'Enter menu 1'
         print("Entering menu 1")
@@ -249,6 +276,20 @@ class DatabaseConnection:
         except pymssql.Error as ex:
             print("Error in query execution:", ex)
             return None
+    
+    def execute_non_query(self, query):
+        if self.connection is None:
+            print("No database connection.")
+            return False
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            self.connection.commit()
+            cursor.close()
+            return True
+        except pymssql.Error as ex:
+            print("Error in query execution:", ex)
+            return False
 
     def close(self):
         if self.connection:
@@ -263,9 +304,9 @@ def run_tests():
     # connect_to_database_test()
 
     try:
-        global user_id 
-        user_id = "test"
-        Yelp().do_search_users("")
+        global user_id
+        user_id = "GyeRXCZnZOVOukMmzlLC1A"
+        Yelp().do_make_friend("")
     except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
