@@ -11,17 +11,17 @@ same session.
 3. (Done) If the user ID is invalid, an appropriate message should be shown to the user.
 
 Search Business
-1. This function allows the user to search for businesses that satisfy certain criteria.
-2. A user should be able to set the following filters as their search criteria: minimum number of stars, city, and name (or part of the name). The search is not case-sensitive. It means that the search for upper or lower case must return the same results.
-3. The user can choose one of the following three orderings of the results: by name, by city, or by number of stars.
-4. After the search is complete, a list of search results must be shown to the user. The list must include the following information for each business: id, name, address, city and number of stars. The results must be ordered according to the chosen attribute. The results can be shown on the terminal or in a GUI.
-5. If the search result is empty, an appropriate message should be shown to the user.
+1. (Done) This function allows the user to search for businesses that satisfy certain criteria.
+2. (Done) A user should be able to set the following filters as their search criteria: minimum number of stars, city, and name (or part of the name). The search is not case-sensitive. It means that the search for upper or lower case must return the same results.
+3. (Done) The user can choose one of the following three orderings of the results: by name, by city, or by number of stars.
+4. (Done) After the search is complete, a list of search results must be shown to the user. The list must include the following information for each business: id, name, address, city and number of stars. The results must be ordered according to the chosen attribute. The results can be shown on the terminal or in a GUI.
+5. (Done) If the search result is empty, an appropriate message should be shown to the user.
 
 Search Users
-1. This function allows the user to search for users that satisfy certain criteria.
-2. A user should be able to set the following filters as their search criteria: name (or a part of the name), minimum review count, minimum average stars. The search is not case sensitive.
-3. After the search is complete, a list of search results must be shown to the user. The list must include the following information for each user: id, name, review count, useful, funny, cool, average stars, and the date when the user was registered at Yelp. The results must be ordered by name. The results can be shown on the terminal or in a GUI.
-4. If the search result is empty, an appropriate message should be shown to the user.
+1. (Done) This function allows the user to search for users that satisfy certain criteria.
+2. (Done) A user should be able to set the following filters as their search criteria: name (or a part of the name), minimum review count, minimum average stars. The search is not case sensitive.
+3. (Done) After the search is complete, a list of search results must be shown to the user. The list must include the following information for each user: id, name, review count, useful, funny, cool, average stars, and the date when the user was registered at Yelp. The results must be ordered by name. The results can be shown on the terminal or in a GUI.
+4. (Done) If the search result is empty, an appropriate message should be shown to the user.
 
 Make Friend
 1. A user must be able to select another user from the results of the function Search Users and create a friendship. This can be done by entering the user's ID in a terminal or by clicking on a user in a GUI. The selected user will be a friend of the user that is logged in to the database.
@@ -165,6 +165,26 @@ class Yelp(BaseMenu):
         else:
             pprint(results)
 
+    # @is_logged_in
+    def do_search_users(self, arg):
+        'Search for users based on criteria'
+        name = input("Enter user name or part of the name (leave blank for any): ").strip()
+        min_review_count = input("Enter minimum review count: ")
+        min_avg_stars = input("Enter minimum average stars: ")
+
+        query = f"SELECT * FROM dbo.user_yelp WHERE review_count >= {min_review_count} AND average_stars >= {min_avg_stars}"
+
+        if name:
+            query += f" AND LOWER(name) LIKE LOWER('%{name}%')"
+
+        query += " ORDER BY name"
+
+        results = db.execute_query(query)
+        if not results:
+            print("No users found matching the criteria.")
+        else:
+            pprint(results)
+
     @is_logged_in
     def do_menu1(self, arg):
         'Enter menu 1'
@@ -187,7 +207,8 @@ class Yelp(BaseMenu):
     def do_test(self, arg):
         'Test command'
         # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
-        self.do_search_business("")
+        # self.do_search_business("")
+        self.do_search_users("")
         return
 
 
