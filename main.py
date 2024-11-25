@@ -93,21 +93,6 @@ class BaseMenu(cmd2.Cmd):
         return True
 
 
-class SubMenu1(BaseMenu):
-    intro = 'Type help or ? to list commands.'
-    prompt = '(menu1) '
-
-    def do_option1(self, arg):
-        'Option 1 in Menu 1'
-        print("You selected Option 1 in Menu 1")
-        return
-
-    def do_option2(self, arg):
-        'Option 2 in Menu 1'
-        print("You selected Option 2 in Menu 1")
-        return
-
-
 class Yelp(BaseMenu):
     intro = 'Welcome to Yelp Database Interactor. Type help or ? to list commands.'
     prompt = '(yelp) '
@@ -243,7 +228,6 @@ class Yelp(BaseMenu):
         # Generate a random CHAR(22) for review_id
         review_id = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8').rstrip('=\n')[:22]
 
-
         # Insert the review record
         success = db.execute_non_query(f"INSERT INTO dbo.review (review_id, user_id, business_id, stars) VALUES ('{review_id}', '{user_id}', '{business_id}', {stars})")
         if success:
@@ -251,31 +235,15 @@ class Yelp(BaseMenu):
         else:
             print("Failed to add review. Please try again.")
 
-    @is_logged_in
-    def do_menu1(self, arg):
-        'Enter menu 1'
-        print("Entering menu 1")
-        SubMenu1().cmdloop()
-        return
-
-    @is_logged_in
-    def do_menu2(self, arg):
-        'Enter menu 2'
-        print("Entering menu 2")
-        # Add more commands or submenus here
-        return
-
     def do_back(self, arg):
         'Back command is disabled in the main menu'
         print("Back command is not available in the main menu")
         return
 
-    # def do_test(self, arg):
-    #     'Test command'
-    #     # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
-    #     # self.do_search_business("")
-    #     # self.do_search_users("")
-    #     return
+    def do_test(self, arg):
+        'Test command'
+        print("Unfortunately, there is nothing that needs to be tested.")
+        return
 
 
 # Class for connecting to the database
@@ -334,8 +302,6 @@ class DatabaseConnection:
 # Tests
 def run_tests():
     'Run test code'
-    # connect_to_database_test()
-
     try:
         global user_id
         user_id = "GyeRXCZnZOVOukMmzlLC1A"
