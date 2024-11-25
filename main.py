@@ -28,9 +28,9 @@ Make Friend
 2. (Done) The friendship should be recorded in the Friendship table.
 
 Review Business
-1. A user should be able to review a business.
-2. To make a review, a user must enter the business's ID in a terminal or click on a business returned by Search Business in a GUI.
-3. The user must provide the number of stars (integer between 1 and 5).
+1. (Done) A user should be able to review a business.
+2. (Done) To make a review, a user must enter the business's ID in a terminal or click on a business returned by Search Business in a GUI.
+3. (Done) The user must provide the number of stars (integer between 1 and 5).
 4. The review should be recorded in the Review table. Create a review ID consisting of the ID of the logged user and the current date.
 5. The program should update the number of stars and the count of reviews for the reviewed business. You need to make sure that the triggers you implemented in assignment 4 are working properly with your application program.
 """
@@ -219,6 +219,35 @@ class Yelp(BaseMenu):
             print("Failed to add friend. Please try again.")
 
     @is_logged_in
+    def do_review_business(self, arg):
+        'Review a business'
+        # A random business ID for testing: 4IeEE942bigAMf-N3JSuxA
+        # Actually, it's not random at all. This is a business that have been reviewed by a friend of GyeRXCZnZOVOukMmzlLC1A
+        business_id = input("Enter the business ID you want to review: ").strip()
+        stars = input("Enter the number of stars (1-5): ").strip()
+
+        if not business_id or not stars:
+            print("Business ID and stars are required.")
+            return
+
+        try:
+            stars = int(stars)
+            if stars < 1 or stars > 5:
+                print("Stars must be an integer between 1 and 5.")
+                return
+        except ValueError:
+            print("Stars must be an integer between 1 and 5.")
+            return
+
+        # Insert the review record
+        review_id = user_id  # Using user_id as the review_id for now
+        success = db.execute_non_query(f"INSERT INTO dbo.review (review_id, user_id, business_id, stars) VALUES ('{review_id}', '{user_id}', '{business_id}', {stars})")
+        if success:
+            print(f"Review for business {business_id} has been added.")
+        else:
+            print("Failed to add review. Please try again.")
+
+    @is_logged_in
     def do_menu1(self, arg):
         'Enter menu 1'
         print("Entering menu 1")
@@ -237,12 +266,12 @@ class Yelp(BaseMenu):
         print("Back command is not available in the main menu")
         return
 
-    def do_test(self, arg):
-        'Test command'
-        # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
-        # self.do_search_business("")
-        # self.do_search_users("")
-        return
+    # def do_test(self, arg):
+    #     'Test command'
+    #     # print(db.execute_query("SELECT TOP 1 * FROM dbo.user_yelp"))
+    #     # self.do_search_business("")
+    #     # self.do_search_users("")
+    #     return
 
 
 # Class for connecting to the database
@@ -276,7 +305,7 @@ class DatabaseConnection:
         except pymssql.Error as ex:
             print("Error in query execution:", ex)
             return None
-    
+
     def execute_non_query(self, query):
         if self.connection is None:
             print("No database connection.")
@@ -306,7 +335,7 @@ def run_tests():
     try:
         global user_id
         user_id = "GyeRXCZnZOVOukMmzlLC1A"
-        Yelp().do_make_friend("")
+        Yelp().do_review_business("")
     except pymssql.Error as ex:
         print("Error in connection:", ex)
     finally:
