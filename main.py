@@ -32,7 +32,7 @@ Review Business
 2. (Done) To make a review, a user must enter the business's ID in a terminal or click on a business returned by Search Business in a GUI.
 3. (Done) The user must provide the number of stars (integer between 1 and 5).
 4. (Done) The review should be recorded in the Review table. Create a review ID consisting of the ID of the logged user and the current date.
-5. The program should update the number of stars and the count of reviews for the reviewed business. You need to make sure that the triggers you implemented in assignment 4 are working properly with your application program.
+5. (Done) The program should update the number of stars and the count of reviews for the reviewed business. You need to make sure that the triggers you implemented in assignment 4 are working properly with your application program.
 """
 
 
@@ -207,7 +207,7 @@ class Yelp(BaseMenu):
     @is_logged_in
     def do_review_business(self, arg):
         'Review a business'
-        # A random business ID for testing: 4IeEE942bigAMf-N3JSuxA
+        # A random business ID for testing: z6SVTb9eFIcWVpKXIfFEvQ
         # Actually, it's not random at all. This is a business that have been reviewed by a friend of GyeRXCZnZOVOukMmzlLC1A
         business_id = input("Enter the business ID you want to review: ").strip()
         stars = input("Enter the number of stars (1-5): ").strip()
@@ -234,6 +234,39 @@ class Yelp(BaseMenu):
             print(f"Review for business {business_id} has been added.")
         else:
             print("Failed to add review. Please try again.")
+            return
+
+        # Update the business ratings
+        update_query = f"""
+            UPDATE dbo.business
+            SET stars = (
+                SELECT AVG(CAST(stars AS DECIMAL(2, 1))) AS average_stars
+                FROM dbo.review
+                WHERE business_id = '{business_id}'
+                AND date IN (
+                    SELECT MAX(date)
+                    FROM dbo.review
+                    WHERE business_id = '{business_id}'
+                    GROUP BY user_id
+                )
+            ),
+            review_count = (
+                SELECT COUNT(*)
+                FROM (
+                    SELECT MAX(date) AS max_date
+                    FROM dbo.review
+                    WHERE business_id = '{business_id}'
+                    GROUP BY user_id
+                ) AS recent_reviews
+            )
+            WHERE business_id = '{business_id}'
+        """
+        update_success = db.execute_non_query(update_query)
+        if update_success:
+            print(f"Business {business_id} has been updated with the new review.")
+        else:
+            print("Failed to update business ratings. Please try again.")
+
 
     def do_back(self, arg):
         'Back command is disabled in the main menu'
